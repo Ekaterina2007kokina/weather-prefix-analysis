@@ -1,3 +1,7 @@
 venv/
 __pycache__/
 uploads/
+.DS_Store
+.Rhistory
+*.Rhistory
+.gitignoregitvideo.MOV
