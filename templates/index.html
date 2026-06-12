@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Загрузка CSV{% endblock %}
+
+{% block content %}
+<section class="card">
+    <h2>1. Выберите данные для анализа</h2>
+
+    <form action="{{ url_for('load_dataset') }}" method="post" enctype="multipart/form-data" class="form">
+        <div class="form-row">
+            <label for="sample_file">Демонстрационный CSV-файл</label>
+            <select name="sample_file" id="sample_file">
+                {% for filename in sample_files %}
+                    <option value="{{ filename }}">{{ filename }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="separator">или</div>
+
+        <div class="form-row">
+            <label for="csv_file">Загрузить свой CSV-файл</label>
+            <input type="file" name="csv_file" id="csv_file" accept=".csv">
+            <small>Файл должен содержать колонки <b>date</b> и <b>temperature</b>.</small>
+        </div>
+
+        <div class="form-row">
+            <label for="threshold">Порог температуры для поиска через BST</label>
+            <input type="number" step="0.1" name="threshold" id="threshold" value="20">
+        </div>
+
+        <button class="button" type="submit">Выполнить анализ</button>
+    </form>
+</section>
+
+<section class="card">
+    <h2>2. Что реализовано в программе</h2>
+    <div class="grid">
+        <div class="feature">
+            <h3>Префиксные суммы</h3>
+            <p>Средняя температура за каждый месяц вычисляется через сумму на интервале.</p>
+        </div>
+        <div class="feature">
+            <h3>Линейный поиск</h3>
+            <p>Самый теплый и самый холодный день находятся проходом по списку температур.</p>
+        </div>
+        <div class="feature">
+            <h3>Сортировка</h3>
+            <p>Месяцы сортируются по средней температуре.</p>
+        </div>
+        <div class="feature">
+            <h3>Бинарное дерево поиска</h3>
+            <p>Поиск дат выше заданного порога выполняется рекурсивным обходом BST.</p>
+        </div>
+        <div class="feature">
+            <h3>Очередь</h3>
+            <p>Скользящее среднее за 7 дней использует очередь последних значений.</p>
+        </div>
+        <div class="feature">
+            <h3>Стек</h3>
+            <p>Перед сглаживанием состояние ряда сохраняется в стек отмены.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

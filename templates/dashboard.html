@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+
+{% block title %}Результаты анализа{% endblock %}
+
+{% block content %}
+<section class="card">
+    <div class="dashboard-title">
+        <div>
+            <h2>Результаты анализа</h2>
+            <p class="muted">Файл: <b>{{ source_name }}</b>. Записей: <b>{{ records_count }}</b>.</p>
+            {% if is_smoothed %}
+                <p class="tag">Отображается сглаженный температурный ряд</p>
+            {% else %}
+                <p class="tag">Отображается исходный температурный ряд</p>
+            {% endif %}
+        </div>
+
+        <form action="{{ url_for('reset') }}" method="post">
+            <button class="button button-secondary" type="submit">Загрузить другой файл</button>
+        </form>
+    </div>
+
+    <div class="actions">
+        <form action="{{ url_for('dashboard') }}" method="post" class="inline-form">
+            <label for="threshold">Порог температуры</label>
+            <input type="number" step="0.1" name="threshold" id="threshold" value="{{ threshold }}">
+            <button class="button" type="submit">Пересчитать поиск</button>
+        </form>
+
+        <form action="{{ url_for('smooth') }}" method="post">
+            <button class="button" type="submit">Сгладить ряд, окно 7 дней</button>
+        </form>
+
+        <form action="{{ url_for('undo') }}" method="post">
+            <button class="button button-secondary" type="submit" {% if not can_undo %}disabled{% endif %}>
+                Отменить последнее преобразование
+            </button>
+        </form>
+    </div>
+</section>
+
+<section class="grid two-columns">
+    <div class="card">
+        <h2>Самый теплый день</h2>
+        <p class="big-number">{{ warmest_day.temperature|round(2) }} °C</p>
+        <p>{{ warmest_day.date.strftime("%Y-%m-%d") }}</p>
+    </div>
+
+    <div class="card">
+        <h2>Самый холодный день</h2>
+        <p class="big-number">{{ coldest_day.temperature|round(2) }} °C</p>
+        <p>{{ coldest_day.date.strftime("%Y-%m-%d") }}</p>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Средняя температура по месяцам через префиксные суммы</h2>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>Месяц</th>
+                <th>Количество дней</th>
+                <th>Средняя температура, °C</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in monthly_averages %}
+                <tr>
+                    <td>{{ item.month_name }}</td>
+                    <td>{{ item.days_count }}</td>
+                    <td>{{ item.average_temperature|round(2) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Месяцы, отсортированные по средней температуре</h2>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>Место</th>
+                <th>Месяц</th>
+                <th>Средняя температура, °C</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in sorted_months %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ item.month_name }}</td>
+                    <td>{{ item.average_temperature|round(2) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Дни с температурой выше {{ threshold }} °C, найденные через BST</h2>
+    <p class="muted">Найдено записей: <b>{{ days_above_count }}</b>.</p>
+
+    <div class="table-wrapper table-limited">
+        <table>
+            <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Температура, °C</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for record_date, temperature in days_above %}
+                <tr>
+                    <td>{{ record_date.strftime("%Y-%m-%d") }}</td>
+                    <td>{{ temperature|round(2) }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="card">
+    <h2>Первые 20 строк текущего ряда</h2>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+            <tr>
+                <th>Дата</th>
+                <th>Температура, °C</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in preview_rows %}
+                <tr>
+                    <td>{{ row.date }}</td>
+                    <td>{{ row.temperature }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
